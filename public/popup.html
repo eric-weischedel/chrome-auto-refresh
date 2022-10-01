@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <title>Getting Started Extension's Popup</title>
     <script src="js/vendor.js"></script>
+    <link rel="stylesheet" href="popup.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="container">
+      <div class="row">
+        <input id="autoRefreshEnabledToggle" name="autoRefreshEnabledToggle" type="checkbox" />
+        <label for="autoRefreshEnabledToggle">Auto refresh enabled</label>
+      </div>
+      <div class="row">
+        <label for="refreshIntervalInput">Refresh interval (seconds)</label>
+        <input id="refreshIntervalInput" name="refreshIntervalInput" type="number" />
+      </div>
+    </div>
     <script src="js/popup.js"></script>
   </body>
 </html>
