@@ -13,7 +13,6 @@ async function getCurrentTab() {
   return tab;
 }
 
-
 async function main() {
   const tab = await getCurrentTab();
   const tabId = tab.id;
@@ -41,7 +40,7 @@ async function main() {
       type: (e.target as HTMLInputElement).checked
         ? MessageType.ENABLE
         : MessageType.DISABLE,
-      tabId
+      tabId,
     });
   });
 

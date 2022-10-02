@@ -24,40 +24,44 @@ interface TabState {
   [tabId: number]: {
     intervalId?: any;
     intervalMs?: number;
-  }
+  };
 }
 
 const tabState: TabState = {};
-
-let intervalId: any | undefined = undefined;
-let intervalMs = 2000;
 
 chrome.runtime.onMessage.addListener(
   async (message: Message, sender, sendResponse) => {
     switch (message.type) {
       case MessageType.ENABLE:
-        clearInterval(intervalId);
-        intervalId = undefined;
-        const tab = await getCurrentTab();
-        intervalId = setInterval(
+        // Clear interval if it exists
+        if (tabState[message.tabId] && tabState[message.tabId].intervalId) {
+          clearInterval(tabState[message.tabId].intervalId);
+          tabState[message.tabId].intervalId = undefined;
+        }
+
+        // Set interval
+        tabState[message.tabId].intervalId = setInterval(
           () =>
             chrome.scripting.executeScript({
-              target: { tabId: tab.id as number },
+              target: { tabId: message.tabId },
               func: () => location.reload(),
             }),
-          intervalMs
+          tabState[message.tabId]?.intervalMs ?? 1000
         );
         break;
 
       case MessageType.DISABLE:
-        clearInterval(intervalId);
-        intervalId = undefined;
+        // Clear interval if it exists
+        if (tabState[message.tabId] && tabState[message.tabId].intervalId) {
+          clearInterval(tabState[message.tabId].intervalId);
+          tabState[message.tabId].intervalId = undefined;
+        }
         break;
 
       case MessageType.GET_CURRENT_STATUS:
         sendResponse({
-          enabled: !!intervalId,
-          interval: intervalMs / 1000,
+          enabled: tabState[message.tabId]?.intervalId !== undefined,
+          interval: tabState[message.tabId]?.intervalMs ?? 1,
         } as GetCurrentStatusResponse);
         return true;
 
@@ -65,9 +69,10 @@ chrome.runtime.onMessage.addListener(
         const payload = (message as Message<SetRefreshIntervalMessagePayload>)
           .payload;
         if (payload) {
-          intervalMs = payload.interval * 1000;
-          clearInterval(intervalId);
-          intervalId = undefined;
+          tabState[message.tabId] = { intervalMs: payload.interval * 1000 };
+          if (tabState[message.tabId]?.intervalId) {
+            clearInterval(tabState[message.tabId].intervalId);
+          }
         }
         break;
     }
