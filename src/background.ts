@@ -7,6 +7,7 @@ export enum MessageType {
 
 export interface Message<P = unknown> {
   type: MessageType;
+  tabId: number;
   payload?: P;
 }
 
@@ -18,6 +19,15 @@ export interface GetCurrentStatusResponse {
   enabled: boolean;
   interval: number;
 }
+
+interface TabState {
+  [tabId: number]: {
+    intervalId?: any;
+    intervalMs?: number;
+  }
+}
+
+const tabState: TabState = {};
 
 let intervalId: any | undefined = undefined;
 let intervalMs = 2000;
@@ -65,9 +75,9 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function getCurrentTab() {
-  const tabs = await chrome.tabs.query({
+  const [tab] = await chrome.tabs.query({
     active: true,
     lastFocusedWindow: true,
   });
-  return tabs[0];
+  return tab;
 }

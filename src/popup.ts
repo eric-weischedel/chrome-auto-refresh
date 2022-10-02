@@ -5,33 +5,54 @@ import {
   SetRefreshIntervalMessagePayload,
 } from "./background";
 
-const autoRefreshEnabledToggle = document.getElementById(
-  "autoRefreshEnabledToggle"
-) as HTMLInputElement;
-const refreshIntervalInput = document.getElementById(
-  "refreshIntervalInput"
-) as HTMLInputElement;
+async function getCurrentTab() {
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  return tab;
+}
 
-chrome.runtime.sendMessage<Message>(
-  { type: MessageType.GET_CURRENT_STATUS },
-  (response: GetCurrentStatusResponse) => {
-    autoRefreshEnabledToggle.checked = response.enabled;
-    refreshIntervalInput.value = response.interval.toString();
+
+async function main() {
+  const tab = await getCurrentTab();
+  const tabId = tab.id;
+  if (!tabId) {
+    return;
   }
-);
 
-autoRefreshEnabledToggle.addEventListener("click", (e) => {
-  chrome.runtime.sendMessage<Message>({
-    type: (e.target as HTMLInputElement).checked
-      ? MessageType.ENABLE
-      : MessageType.DISABLE,
-  });
-});
+  const autoRefreshEnabledToggle = document.getElementById(
+    "autoRefreshEnabledToggle"
+  ) as HTMLInputElement;
+  const refreshIntervalInput = document.getElementById(
+    "refreshIntervalInput"
+  ) as HTMLInputElement;
 
-refreshIntervalInput.addEventListener("input", (e) => {
-  chrome.runtime.sendMessage<Message<SetRefreshIntervalMessagePayload>>({
-    type: MessageType.SET_REFRESH_INTERVAL,
-    payload: { interval: Number((e.target as HTMLInputElement).value) },
+  chrome.runtime.sendMessage<Message>(
+    { type: MessageType.GET_CURRENT_STATUS, tabId },
+    (response: GetCurrentStatusResponse) => {
+      autoRefreshEnabledToggle.checked = response.enabled;
+      refreshIntervalInput.value = response.interval.toString();
+    }
+  );
+
+  autoRefreshEnabledToggle.addEventListener("click", (e) => {
+    chrome.runtime.sendMessage<Message>({
+      type: (e.target as HTMLInputElement).checked
+        ? MessageType.ENABLE
+        : MessageType.DISABLE,
+      tabId
+    });
   });
-  autoRefreshEnabledToggle.checked = false;
-});
+
+  refreshIntervalInput.addEventListener("input", (e) => {
+    chrome.runtime.sendMessage<Message<SetRefreshIntervalMessagePayload>>({
+      type: MessageType.SET_REFRESH_INTERVAL,
+      tabId,
+      payload: { interval: Number((e.target as HTMLInputElement).value) },
+    });
+    autoRefreshEnabledToggle.checked = false;
+  });
+}
+
+main();
