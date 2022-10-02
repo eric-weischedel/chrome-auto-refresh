@@ -33,11 +33,7 @@ chrome.runtime.onMessage.addListener(
   async (message: Message, sender, sendResponse) => {
     switch (message.type) {
       case MessageType.ENABLE:
-        // Clear interval if it exists
-        if (tabState[message.tabId]?.intervalId !== undefined) {
-          clearInterval(tabState[message.tabId].intervalId);
-          tabState[message.tabId].intervalId = undefined;
-        }
+        clearIntervalForTab(message.tabId);
 
         // Set interval
         tabState[message.tabId] = {
@@ -54,11 +50,7 @@ chrome.runtime.onMessage.addListener(
         break;
 
       case MessageType.DISABLE:
-        // Clear interval if it exists
-        if (tabState[message.tabId]?.intervalId !== undefined) {
-          clearInterval(tabState[message.tabId].intervalId);
-          tabState[message.tabId].intervalId = undefined;
-        }
+        clearIntervalForTab(message.tabId);
         break;
 
       case MessageType.GET_CURRENT_STATUS:
@@ -72,12 +64,17 @@ chrome.runtime.onMessage.addListener(
         const payload = (message as Message<SetRefreshIntervalMessagePayload>)
           .payload;
         if (payload) {
-          if (tabState[message.tabId]?.intervalId !== undefined) {
-            clearInterval(tabState[message.tabId].intervalId);
-          }
+          clearIntervalForTab(message.tabId);
           tabState[message.tabId] = { intervalMs: payload.interval * 1000 };
         }
         break;
     }
   }
 );
+
+function clearIntervalForTab(tabId: number) {
+  if (tabState[tabId]?.intervalId !== undefined) {
+    clearInterval(tabState[tabId].intervalId);
+    tabState[tabId].intervalId = undefined;
+  }
+}
