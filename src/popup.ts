@@ -33,4 +33,5 @@ refreshIntervalInput.addEventListener("input", (e) => {
     type: MessageType.SET_REFRESH_INTERVAL,
     payload: { interval: Number((e.target as HTMLInputElement).value) },
   });
+  autoRefreshEnabledToggle.checked = false;
 });

@@ -56,6 +56,8 @@ chrome.runtime.onMessage.addListener(
           .payload;
         if (payload) {
           intervalMs = payload.interval * 1000;
+          clearInterval(intervalId);
+          intervalId = undefined;
         }
         break;
     }
